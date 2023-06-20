@@ -10,15 +10,6 @@ function App() {
     const [war, setWar] = useState(false)
     const [text, setText] = useState('')
 
-    const [count, setCount] = useState(0);
-    const countRef = useRef(count);
-
-    const increment = () => {
-        const newCount = count + 1;
-        setCount(newCount);
-        countRef.current = newCount; // Update the countRef value
-    };
-
     let deck = new Deck
     console.log(deck.cards.slice(0,3))
 
@@ -149,12 +140,6 @@ function App() {
                 {stop ? 'Start Game' : (inRound ? 'Clean Before Round' : 'Flip Cards')}
             </button>
             <div className='box'>hi</div>
-
-            <div>
-                <p>Count: {count}</p>
-                <p>Stored Count: {countRef.current}</p>
-                <button onClick={increment}>Increment</button>
-            </div>
         </>
     )
 }
