@@ -137,3 +137,10 @@ button:focus-visible {
   right: .5rem;
   transform: rotate(180deg);
 }
+
+.box {
+  background-color: green;
+  border: 10px solid white;
+  width: 10rem;
+  height: 10rem;
+}
