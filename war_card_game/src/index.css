@@ -48,12 +48,12 @@
 }
 
 .text {
-  grid-column: span 2;
+  height: 3rem;
+  width: 10rem;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-
 
 .box {
   background-color: green;
@@ -62,3 +62,12 @@
   height: 10rem;
 }
 
+.war-board {
+  display: flex;
+  align-items: center;
+}
+
+.war-button{
+  height: 3rem;
+  width: 10rem;
+}
