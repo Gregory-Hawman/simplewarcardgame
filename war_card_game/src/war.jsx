@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react';
 import './App.css';
 import Deck from './deck.js';
 
