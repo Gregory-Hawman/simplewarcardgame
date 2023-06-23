@@ -42,7 +42,7 @@ function War() {
 
 
     function startGame() {
-        // deck.shuffle()
+        deck.shuffle()
 
         const deckMidPoint = Math.ceil(deck.numberOfCards / 2)
         setPlayerDeck(new Deck(deck.cards.slice(0, deckMidPoint)))
@@ -201,7 +201,15 @@ function War() {
     }
 
     function facedownTributeCards() {
+        const tributeCards = [];
+        for (let i = warRoundCount; i < computerWarTribute.length; i++) {
+          tributeCards.push(
+            <div className='face-down-tribute tribute-card-slot' key={i}>
 
+            </div>
+          );
+        }
+        return tributeCards;
     }
 
     return (
@@ -221,9 +229,7 @@ function War() {
                     <div className='face-up-tribute tribute-card-slot'>
                         {computerWarTribute[0].value} {computerWarTribute[0].suit}
                     </div>
-                    <div>
-
-                    </div>
+                   {facedownTributeCards()}
                 </div> : null
             }
          
@@ -242,9 +248,7 @@ function War() {
                     <div className='face-up-tribute tribute-card-slot'>
                         {playerWarTribute[0].value} {playerWarTribute[0].suit}
                     </div>
-                    <div>
-
-                    </div>
+                    {facedownTributeCards()}
                 </div> : null
             }
             <div className='flex'>
