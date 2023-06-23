@@ -3,9 +3,9 @@ import './App.css';
 import Deck from './deck.js';
 
 function War() {
-    const [playerDeck, setPlayerDeck] = useState(null)
+    const [playerDeck, setPlayerDeck] = useState()
     const [playerCardSlot, setPlayerCardSlot] = useState(null)
-    const [computerDeck, setComputerDeck] = useState(null)
+    const [computerDeck, setComputerDeck] = useState()
     const [computerCardSlot, setComputerCardSlot] = useState(null)
     const [inRound, setInRound] = useState(false)
     const [stop, setStop] = useState(false)
@@ -53,17 +53,20 @@ function War() {
         setInRound(false)
         setComputerCardSlot(null)
         setPlayerCardSlot(null)
-        setText('')
+        if (war) {
+            setText('War')
+        } else {
+            setText('')
+        }
 
         updateDeckCount()
     }
 
     function flipCards() {
         setInRound(true)
-
+        
         const playerCard = playerDeck.pop()
         const computerCard = computerDeck.pop()
-        console.log(playerCard)
 
         setPlayerCardSlot(playerCard);
         setComputerCardSlot(computerCard);
@@ -72,11 +75,18 @@ function War() {
         
         if (isRoundWinner(playerCard, computerCard)) {
             setText('Win')
-            addCardsToPlayerDeck(playerCard, computerCard)
-
+            setPlayerDeck((prevDeck) => {
+                const newCards = [...prevDeck.cards, playerCard, computerCard]
+                const updatedDeck = new Deck(newCards)
+                return updatedDeck;
+            });
         } else if (isRoundWinner(computerCard, playerCard)){
             setText("Lose");
-            addCardsToComputerDeck(computerCard, playerCard)
+            setComputerDeck((prevDeck) => {
+                const newCards = [...prevDeck.cards, computerCard, playerCard]
+                const updatedDeck = new Deck(newCards)
+                return updatedDeck;
+            });
         } else {
             setText('War')
             warRound()
@@ -91,22 +101,14 @@ function War() {
         }
     }
 
-    function addCardsToPlayerDeck(cardOne, cardTwo){
-        setPlayerDeck((oldDeck) => (oldDeck === null ? [cardOne, cardTwo] : [...oldDeck, cardOne, cardTwo]));
-    }
-    function addCardsToComputerDeck(cardOne, cardTwo){
-        setComputerDeck((oldDeck) => (oldDeck === null ? [cardOne, cardTwo] : [...oldDeck, cardOne, cardTwo]));
-    }
-
     function updateDeckCount() {
-        if (computerDeck !== null && playerDeck !== null) {
+        if (computerDeck !== undefined && playerDeck !== undefined) {
             computerDeck.numberOfCards
             playerDeck.numberOfCards
         }
     }
 
     function isRoundWinner(cardOne, cardTwo) {
-        console.log(cardOne, cardTwo)
         return CARD_VALUE_MAP[cardOne.value] > CARD_VALUE_MAP[cardTwo.value]
     }
 
@@ -115,15 +117,24 @@ function War() {
     }
 
     function warRound() {
-        const playerTribute = playerDeck.cards.slice(0, 3)
-        const computerTribute = computerDeck.cards.slice(0,3)
+        setWar(true)
+        // store the war causing card in the tribute pile
+        // clear the board
+        // pull 3 more cards to store in tribute pile // maybe individually 
+            // check they still have one card that is flipable after tribute
+            // if player doesn't have enough cards, play with the lesser amount
+        // update deck count
+        // flip cards
+        // winner gets all tribute cards and flipped card 
+            // clear tribute pile
+        // if war again recursive call
     }
 
     return (
         <div className='war-board'>
             <div>
                 <div>Computer</div>
-                {computerDeck === null ? <div className='computer-deck deck'></div> : <div className='computer-deck deck'>{computerDeck.numberOfCards}</div>}
+                {computerDeck === undefined ? <div className='computer-deck deck'></div> : <div className='computer-deck deck'>{computerDeck.numberOfCards}</div>}
                 {computerCardSlot === null ? 
                     <div className='computer-card-slot card-slot'></div> : 
                     <div className='computer-card-slot card-slot'>{computerCardSlot.value}{computerCardSlot.suit}</div>
@@ -131,8 +142,8 @@ function War() {
             </div>
             <div>
                 <div className='text'>{text}</div>
-                <button className='war-button' onClick={stop ? startGame : (inRound ? cleanBeforeRound : flipCards)}>
-                    {stop ? 'Start Game' : (inRound ? 'Clear' : 'Flip Cards')}
+                <button className='war-button' onClick={stop ? startGame : war ? warRound : (inRound ? cleanBeforeRound : flipCards)}>
+                    {stop ? 'Start Game' : war ? 'War!' : (inRound ? 'Clear' : 'Flip Cards')}
                 </button>
             </div>
             <div>
@@ -141,7 +152,7 @@ function War() {
                     <div className='player-card-slot card-slot'></div> : 
                     <div className='player-card-slot card-slot'>{playerCardSlot.value}{playerCardSlot.suit}</div>
                 }
-                {playerDeck === null ? <div className='player-deck deck'></div> : <div className='player-deck deck'>{playerDeck.numberOfCards}</div>}
+                {playerDeck === undefined ? <div className='player-deck deck'></div> : <div className='player-deck deck'>{playerDeck.numberOfCards}</div>}
             </div>
         </div>
     )

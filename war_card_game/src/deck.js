@@ -72,3 +72,6 @@ function freshDeck() {
         })
     })
 }
+
+let deck1 = new Deck
+console.log('deck1', deck1)
