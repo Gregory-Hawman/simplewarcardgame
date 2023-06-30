@@ -1,18 +1,26 @@
 const SUITS = ["♠", "♣", "♥", "♦"]
 const VALUES = [
-  "A",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "J",
-  "Q",
-  "K"
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "J",
+    "Q",
+    "K",
+    "A",
+]
+
+const SHORT_VALUES = [
+    "10",
+    "J",
+    "Q",
+    "K",
+    "A",
 ]
 
 export default class Deck{
@@ -40,10 +48,6 @@ export default class Deck{
     push(card) {
         this.cards.push(card)
     }
-
-    slice() {
-        return
-    }
 }
 
 class Card {
@@ -55,19 +59,11 @@ class Card {
     get color() {
         return this.suit === "♠" || this.suit === "♣" ? "black" : "red";
     }
-    
-    // getHTML() {
-    //     const cardDiv = document.createElement('div');
-    //     cardDiv.innerText = this.suit
-    //     cardDiv.classList.add("card", this.color)
-    //     cardDiv.dataset.value = `${this.value} ${this.suit}`
-    //     return cardDiv
-    // }
 }
 
 function freshDeck() {
     return SUITS.flatMap(suit => {
-        return VALUES.map(value => {
+        return SHORT_VALUES.map(value => {
             return new Card(suit, value)
         })
     })

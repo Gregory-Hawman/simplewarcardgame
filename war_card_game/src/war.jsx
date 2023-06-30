@@ -16,7 +16,8 @@ function War() {
 
     const [startWar, setStartWar] = useState(false)
     const [warRoundCount, setWarRoundCount] = useState(0)
-    const [tributeSize, setTributeSize] = useState(3)
+    const [tributeSize, setTributeSize] = useState(null)
+    const [warSwitch, setWarSwitch] = useState(false)
 
     const [text, setText] = useState('')
 
@@ -42,6 +43,18 @@ function War() {
         startGame(); // Call startGame function when the component is mounted
     }, []);
 
+    useEffect(() => {
+        if(warRoundCount > 0){
+            for (let i = 0; i < tributeSize; i++){
+                const playerCard = playerDeck.pop()
+                const computerCard = computerDeck.pop()
+                addCardsToDeck('playerTribute', playerCard)
+                addCardsToDeck('computerTribute', computerCard)
+                updateDeckCount()
+            }
+        }
+    },[warSwitch])
+
     function startGame() {
         deck.shuffle()
 
@@ -58,18 +71,32 @@ function War() {
     function cleanBeforeRound() {
         setComputerCardSlot(null)
         setPlayerCardSlot(null)
-        if (warRoundCount > 0) {
+
+        if (warRoundCount > 0 && startWar) {
             setText('War')
         } else if (warRoundCount > 0 && startWar === false) {
             setPlayerWarTribute(new Deck([]))
             setComputerWarTribute(new Deck([]))
             setWarRoundCount(0)
+            setInRound(false)
+            setText('')
+            setTributeSize(null)
         } else {
             setInRound(false)
             setText('')
         }
-
-        updateDeckCount()
+        if(playerDeck && computerDeck){
+            if (warRoundCount === 0){
+                if (isGameOver(playerDeck)) {
+                    setText('You Lose!!!')
+                    setStopGame(true)
+        
+                } else if (isGameOver(computerDeck)) {
+                    setText('You Won!')
+                    setStopGame(true)    
+                }
+            }
+        }
     }
 
     function updateDeckCount() {
@@ -85,10 +112,19 @@ function War() {
 
     function flipCards() {
         setInRound(true)
-        
-        const playerCard = playerDeck.pop()
-        const computerCard = computerDeck.pop()
 
+        let playerCard
+        let computerCard
+
+        if (playerDeck.numberOfCards === 0){
+            playerCard = playerCardSlot
+        } else if (computerDeck.numberOfCards === 0) {
+            computerCard = computerCardSlot
+        }else {
+            playerCard = playerDeck.pop()
+            computerCard = computerDeck.pop()
+        }
+        
         setPlayerCardSlot(playerCard);
         setComputerCardSlot(computerCard);
 
@@ -97,10 +133,10 @@ function War() {
         if (warRoundCount > 0) {
             if (isRoundWinner(playerCard, computerCard)) {
                 setText('You Win the War')
-                addCardsToDeck('player', playerCard, computerCard, playerWarTribute, computerWarTribute)
+                addCardsToDeck('player', playerCard, computerCard, ...playerWarTribute.cards, ...computerWarTribute.cards)
             } else if (isRoundWinner(computerCard, playerCard)){
                 setText("You Lose the War");
-                addCardsToDeck('computer', computerCard, playerCard, computerWarTribute, playerWarTribute)
+                addCardsToDeck('computer', computerCard, playerCard, ...computerWarTribute.cards, ...playerWarTribute.cards)
             } else {
                 setText('War Again')
                 setStartWar(true)
@@ -118,16 +154,6 @@ function War() {
                 setText('War')
                 setStartWar(true)
             }
-        }
-        
-        
-        if (isGameOver(playerDeck)) {
-            setText('You Lose!!!')
-            setStopGame(true)
-
-        } else if (isGameOver(computerDeck)) {
-            setText('You Won!')
-            setStopGame(true)
         }
     }
 
@@ -169,8 +195,14 @@ function War() {
         setWarRoundCount(warRoundCount + 1)
 
         // store the war causing card in the tribute pile face up
-        addCardsToDeck('playerTribute', playerCardSlot)
-        addCardsToDeck('computerTribute', computerCardSlot)
+        if (playerDeck.numberOfCards === 0){
+            addCardsToDeck('computerTribute', computerCardSlot)
+        } else if (computerDeck.numberOfCards === 0){
+            addCardsToDeck('playerTribute', playerCardSlot)
+        } else {
+            addCardsToDeck('playerTribute', playerCardSlot)
+            addCardsToDeck('computerTribute', computerCardSlot)
+        }
 
         // check they still have one card that is flipable after tribute
         if (computerDeck.numberOfCards > 3 && playerDeck.numberOfCards > 3) {
@@ -182,80 +214,82 @@ function War() {
         } else {
             setTributeSize(0)
         }
-
-        for (let i = 0; i < tributeSize; i++){
-            const playerCard = playerDeck.pop()
-            const computerCard = computerDeck.pop()
-            addCardsToDeck('playerTribute', playerCard)
-            addCardsToDeck('computerTribute', computerCard)
-            updateDeckCount()
-        }
+        // The tributeSize state change triggers the useEffect for loop at the top to add cards to the to the respective warTributeDecks.
 
         // clear the board
         cleanBeforeRound()
-        updateDeckCount()
+        setWarSwitch(!warSwitch)
     }
 
     return (
         <div>
-            {/* Computer Deck and Drawn Card */}
-            <div  className='flex'>
+            {stopGame ? 
                 <div>
-                    <div>Computer</div>
-                    {computerDeck === undefined ? <div className='computer-deck deck'></div> : <div className='computer-deck deck'>{computerDeck.numberOfCards}</div>}
-                </div> 
-                {computerCardSlot === null ? 
-                    <div className='computer-card-slot card-slot'></div> : 
-                    <div className='computer-card-slot card-slot'>{computerCardSlot.value}{computerCardSlot.suit}</div>
-                }
-            </div>
-            
-            {/* Computer card that started the war and tribute cards */}
-            {warRoundCount > 0 && computerWarTribute !== undefined? 
-                <div className='war-tribute-board'>
-                    {computerWarTribute.cards.map((card, i) => {
-                        return (
-                            <div className='face-up-tribute tribute-card-slot' key={i}>
-                                {card.value} {card.suit}
-                            </div>
-                        )
-                    })}
-                </div> : null
-            }
-         
-            {/* Text and Button */}
-            <div>
-                <div className='text'>{text}</div>
-                {startWar ? 
-                    <button className='war-button' onClick={warRound}>Start War!</button> : 
-                    <button className='war-button' onClick={inRound ? cleanBeforeRound : flipCards}>
-                        {inRound ? 'Clear' : 'Flip Cards'}
-                    </button>
-                }
-            </div>
-
-            {warRoundCount > 0 && playerWarTribute !== undefined? 
-                <div className='war-tribute-board'>
-                    {playerWarTribute.cards.map((card, i) => {
-                        return (
-                            <div className='face-up-tribute tribute-card-slot' key={i}>
-                                {card.value} {card.suit}
-                            </div>
-                        )
-                    })}
-                </div> : null
-            }
-
-            <div className='flex'>
+                    {text}
+                    <button onClick={startGame}>Play Again?</button> 
+                </div> : 
                 <div>
-                    <div>Player</div>
-                    {playerDeck === undefined ? <div className='player-deck deck'></div> : <div className='player-deck deck'>{playerDeck.numberOfCards}</div>}
+                    {/* Computer Deck and Drawn Card */}
+                    <div  className='flex'>
+                        <div>
+                            <div>Computer</div>
+                            {computerDeck === undefined ? <div className='computer-deck deck'></div> : <div className='computer-deck deck'>{computerDeck.numberOfCards}</div>}
+                        </div> 
+                        {computerCardSlot === null ? 
+                            <div className='computer-card-slot card-slot'></div> : 
+                            <div className='computer-card-slot card-slot'>{computerCardSlot.value}{computerCardSlot.suit}</div>
+                        }
+                    </div>
+                    
+                    {/* Computer card that started the war and tribute cards */}
+                    {warRoundCount > 0 && computerWarTribute !== undefined? 
+                        <div className='war-tribute-board'>
+                            {computerWarTribute.cards.map((card, i) => {
+                                return (
+                                    <div className='face-up-tribute tribute-card-slot' key={i}>
+                                        {card.value} {card.suit}
+                                    </div>
+                                )
+                            })}
+                        </div> : null
+                    }
+                
+                    {/* Text and Button */}
+                    <div>
+                        <div className='text'>{text}</div>
+                        {startWar ? 
+                            <button className='war-button' onClick={warRound}>Start War!</button> : 
+                            <button className='war-button' onClick={warRoundCount >= 2 ? flipCards : inRound ? cleanBeforeRound : flipCards}>
+                                {warRoundCount >= 2 ? 'Flip Cards' : inRound ? 'Clear' : 'Flip Cards'}
+                            </button>
+                        }
+                    </div>
+
+                    {/* Player War Tribute Deck */}
+                    {warRoundCount > 0 && playerWarTribute !== undefined? 
+                        <div className='war-tribute-board'>
+                            {playerWarTribute.cards.map((card, i) => {
+                                return (
+                                    <div className='face-up-tribute tribute-card-slot' key={i}>
+                                        {card.value} {card.suit}
+                                    </div>
+                                )
+                            })}
+                        </div> : null
+                    }
+
+                    <div className='flex'>
+                        <div>
+                            <div>Player</div>
+                            {playerDeck === undefined ? <div className='player-deck deck'></div> : <div className='player-deck deck'>{playerDeck.numberOfCards}</div>}
+                        </div>
+                        {playerCardSlot === null ? 
+                            <div className='player-card-slot card-slot'></div> : 
+                            <div className='player-card-slot card-slot'>{playerCardSlot.value}{playerCardSlot.suit}</div>
+                        }
+                    </div>
                 </div>
-                {playerCardSlot === null ? 
-                    <div className='player-card-slot card-slot'></div> : 
-                    <div className='player-card-slot card-slot'>{playerCardSlot.value}{playerCardSlot.suit}</div>
-                }
-            </div>
+            }
         </div>
     )
 }
